@@ -8,20 +8,33 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 
 namespace CommandAPI
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            // SECTION 1. Add code below
+            services.AddDbContext<CommandContext>(options => options.UseMySql
+                (Configuration.GetConnectionString("MariaDBConnection"), new MariaDbServerVersion(new Version(10,6,3))));
+
             // Registers services to enable the use of “Controllers” throughout our application
             services.AddControllers();
 
-            services.AddScoped<ICommandAPIRepo, MockCommandAPIRepo>();
+            // services.AddScoped<ICommandAPIRepo, MockCommandAPIRepo>();
+
+            services.AddScoped<ICommandAPIRepo, SqlCommandAPIRepo>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,7 +49,6 @@ namespace CommandAPI
 
             app.UseEndpoints(endpoints =>
             {
-                // SECTION 2. Add code below
                 // We “MapControllers” to our endpoints, i.e., we make use  of the Controller services (registered in the ConfigureServices method) as endpoints in the Request Pipeline.
                 endpoints.MapControllers();
             });
