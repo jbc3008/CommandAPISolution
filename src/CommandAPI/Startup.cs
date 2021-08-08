@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 
 namespace CommandAPI
 {
@@ -25,8 +26,14 @@ namespace CommandAPI
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            var builder = new MySqlConnectionStringBuilder();
+            builder.ConnectionString = Configuration.GetConnectionString("MariaDBConnection");
+            builder.UserID = Configuration["UserID"];
+            builder.Password = Configuration["Password"];
+
+
             services.AddDbContext<CommandContext>(options => options.UseMySql
-                (Configuration.GetConnectionString("MariaDBConnection"), new MariaDbServerVersion(new Version(10,6,3))));
+                (builder.ConnectionString, new MariaDbServerVersion(new Version(10,6,3))));
 
             // Registers services to enable the use of “Controllers” throughout our application
             services.AddControllers();
